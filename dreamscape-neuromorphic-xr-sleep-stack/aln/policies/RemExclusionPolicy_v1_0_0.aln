@@ -1,0 +1,50 @@
+module RemExclusionPolicy_v1_0_0 {
+
+    constants {
+        POLICY_ID          : "99999999-9999-4999-8999-999999999999";
+        POLICY_LABEL       : "REM-EXCLUDED-DREAMSCAPE-XR";
+        POLICY_VERSION     : "1.0.0";
+        POLICY_DESCRIPTION : "Hard exclusion of REM sleep and dream-phase integrations in DreamScape neuromorphic XR workflows.";
+    }
+
+    entity StudyDescriptor {
+        id                 : uuid;
+        study_code         : string;
+        title              : string;
+        study_type         : enum["INSOMNIA_RELAX","CBTI_SUPPORT","ANXIETY_RELIEF","WELLNESS"];
+        rem_sleep_allowed  : bool; // must be false
+        rem_policy_id      : uuid;
+    }
+
+    entity SessionDescriptor {
+        id                 : uuid;
+        study_id           : uuid;
+        purpose            : string;
+        rem_flag           : bool; // must be false
+    }
+
+    behavior_tree RemExclusionGuardTree {
+        root "rem_exclusion_root" {
+
+            branch "study_guard" {
+                node "block_rem_studies"
+                    -> filter(StudyDescriptor.rem_sleep_allowed == false);
+            }
+
+            branch "session_guard" {
+                node "block_rem_sessions"
+                    -> filter(SessionDescriptor.rem_flag == false);
+            }
+        }
+    }
+
+    service RemExclusionDescriptorService {
+        op validate_study(StudyDescriptor) -> bool {
+            // Evaluate behavior tree; return true only if all guards pass.
+        }
+
+        op validate_session(SessionDescriptor) -> bool {
+            // Evaluate behavior tree; return true only if all guards pass.
+        }
+    }
+}

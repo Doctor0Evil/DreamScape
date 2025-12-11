@@ -1,0 +1,45 @@
+MIT License
+
+Copyright (c) 2025 DreamScape
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. Attribution and Notices
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+When the Software is used in regulated clinical, neuromorphic, or
+medical-device contexts, users must clearly identify their organization
+as the responsible manufacturer/operator and must not represent DreamScape
+as having independently achieved regulatory certification.
+2. No Regulatory Status Warranties
+The Software is provided as a technical foundation only. It does not,
+by itself, confer compliance with any law or regulation, including but
+not limited to ISO 13485, ISO 14971, GDPR, HIPAA, FDA, or EU MDR.
+Users are solely responsible for establishing and maintaining any
+required quality management systems, risk management files, clinical
+evaluations, and regulatory submissions.
+3. No Clinical or Medical Advice
+The Software is not clinical advice and is not, by itself, a medical
+device. Any clinical use, including use for insomnia, anxiety, or other
+conditions, must be supervised by qualified healthcare professionals in
+accordance with applicable laws and professional standards.
+4. Safety and Data Protection Obligations
+Users integrating the Software into clinical or real-world environments
+must implement appropriate safeguards, including:
+    - Risk assessment and mitigation for patient and user safety;
+    - Calibration and maintenance controls for devices and sensors;
+    - Pseudonymization or anonymization of personal data where possible;
+    - Technical and organizational measures for data security and privacy.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

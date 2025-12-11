@@ -1,0 +1,30 @@
+module InsomniaTherapyGraph_v1_0_0 {
+
+    constants {
+        POLICY_ID          : "33333333-3333-4333-8333-333333333333";
+        POLICY_LABEL       : "INSOMNIA-THERAPY-GRAPH";
+        POLICY_VERSION     : "1.0.0";
+        POLICY_DESCRIPTION : "A therapy graph encoding CBT-I inspired modules and guardrails for DreamScape XR sessions.";
+    }
+
+    entity TherapyNode {
+        id                 : uuid;
+        label              : string;
+        module_type        : enum["PSYCHOEDUCATION","RELAXATION","SLEEP_RESTRICTION","SLEEP_HYGiene","BREATHING_TRAINING"];
+        max_duration_sec   : int;
+        requires_clinician : bool;
+    }
+
+    behavior_graph InsomniaGraph {
+        root "therapy_root" {
+            node "psychoeducation" -> next("relaxation");
+            node "relaxation" -> next("breathing");
+            node "breathing" -> next("sleep_hygiene");
+            node "sleep_hygiene" -> next("end");
+        }
+    }
+
+    service TherapyGraphService {
+        op assemble_session(list<TherapyNode>) -> bool { /* validate node ordering and guards */ }
+    }
+}

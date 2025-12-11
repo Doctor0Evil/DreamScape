@@ -1,0 +1,11 @@
+http:
+  port: 8090
+
+services:
+  policy:
+    base_url: "http://policy-service:8080"
+  calibration:
+    base_url: "http://calibration-service:8081"
+
+database:
+  url: "postgres://dreamscape_app:CHANGE_ME_SECURELY@postgres:5432/dreamscape?sslmode=disable"

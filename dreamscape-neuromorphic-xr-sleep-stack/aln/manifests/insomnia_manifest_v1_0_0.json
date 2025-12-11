@@ -1,0 +1,9 @@
+{
+  "policy_id": "33333333-3333-4333-8333-333333333333",
+  "label": "INSOMNIA-THERAPY-GRAPH",
+  "version": "1.0.0",
+  "file": "aln/therapy_graphs/InsomniaTherapyGraph_v1_0_0.aln",
+  "git_commit": "TO_BE_FILLED_BY_CI_WITH_REAL_COMMIT",
+  "effective_from": "2025-01-01T00:00:00Z",
+  "qms_doc_ref": "QMS-POL-INS-001"
+}

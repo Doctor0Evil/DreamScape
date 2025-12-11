@@ -1,0 +1,10 @@
+# Binaries
+calibration-service
+
+# Vendor and Build
+vendor/
+*.tmp
+
+# Temporary files
+*.log
+.DS_Store

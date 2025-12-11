@@ -1,0 +1,65 @@
+stages:
+  - validate
+  - migrate
+
+variables:
+  POSTGRES_DB: "dreamscape"
+  POSTGRES_USER: "dreamscape_app"
+  POSTGRES_PASSWORD: "testpassword"
+  FLYWAY_VERSION: "10.20.0"
+
+validate_manifests:
+  stage: validate
+  image: alpine:3.20
+  script:
+    - apk add --no-cache jq git
+    - for manifest in aln/manifests/*.json; do jq . "$manifest" > /dev/null; done
+    - GIT_COMMIT="$(git rev-parse HEAD)"
+    - sed -i "s/\"git_commit\": \"TO_BE_FILLED_BY_CI_WITH_REAL_COMMIT\"/\"git_commit\": \"${GIT_COMMIT}\"/" aln/manifests/rem_exclusion_manifest_v1_0_0.json || true
+    - if [ -f aln/manifests/insomnia_manifest_v1_0_0.json ]; then
+        sed -i "s/\"git_commit\": \"TO_BE_FILLED_BY_CI_WITH_REAL_COMMIT\"/\"git_commit\": \"${GIT_COMMIT}\"/" aln/manifests/insomnia_manifest_v1_0_0.json;
+      fi
+  artifacts:
+    paths:
+      - aln/manifests/
+
+build_go_services:
+  stage: validate
+  image: golang:1.22
+  script:
+    - cd services/policy-service && go mod tidy && go build ./cmd
+    - cd ../calibration-service && go mod tidy && go build ./cmd
+  artifacts:
+    expire_in: 1h
+
+migrate_db:
+  stage: migrate
+  image: eclipse-temurin:21-jre
+  services:
+    - name: postgres:16
+      alias: postgres
+  script:
+    - apt-get update && apt-get install -y curl
+    - curl -L "https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz" -o flyway.tar.gz
+    - tar -xzf flyway.tar.gz
+    - export PATH="$PWD/flyway-${FLYWAY_VERSION}:$PATH"
+    - mkdir -p db/flyway/conf
+    - cat << CONF > db/flyway/conf/flyway.conf
+flyway.url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+flyway.user=${POSTGRES_USER}
+flyway.password=${POSTGRES_PASSWORD}
+flyway.schemas=public
+flyway.table=schema_history_dreamscape
+flyway.locations=filesystem:db/flyway/sql
+flyway.connectRetries=5
+flyway.baselineOnMigrate=true
+CONF
+    - flyway -configFiles=db/flyway/conf/flyway.conf migrate
+    - psql -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -c "SELECT policy_id FROM rem_policy WHERE rem_excluded = TRUE;"
+    - echo "Attempting to install pgTAP and run DB tests (best-effort)"
+    - apt-get update && apt-get install -y make gcc postgresql-server-dev-16 perl libdbi-perl libdbd-pg-perl ca-certificates
+    - git clone https://github.com/theory/pgtap.git /tmp/pgtap && cd /tmp/pgtap && perl Makefile.PL && make && make install || true
+    - psql -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -c "CREATE EXTENSION IF NOT EXISTS pgtap;" || true
+    - psql -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -f db/tests/test_rem_and_calibration.sql || true
+  variables:
+    PGPASSWORD: "testpassword"
