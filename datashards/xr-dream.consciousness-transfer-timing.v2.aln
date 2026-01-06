@@ -1,0 +1,44 @@
+aln destination-path,xr-dream.consciousness-transfer-timing.v2.aln
+QPU.Datashard Consciousness-transfer timing guard for Dreamnet XR-grid – enforces 20-40 minute stable N2/N3 window with arousal veto
+path,entitytype,field,key,value,datatype,constraints,notes
+SECTION,SUBJECT
+ROW,subject,subject,scalar,subjectid,,string,primarykey,Rights-bearing augmented user
+ROW,subject,subject,enum,sleepstage,wake,string,wake,N1,N2,N3,REM,unknown,Validated PSG/EEG stage
+ROW,subject,subject,scalar,minutes_since_lightsout,0.0,float,0,Wall-clock minutes since stable sleep onset
+ROW,subject,subject,scalar,psychriskscore,0.0,float,range0,1,Composite psych-risk R
+ROW,subject,subject,scalar,sleeptoken,0.0,float,range0,1,Sleep pressure proxy S
+ROW,subject,subject,scalar,enstasis_score,1.0,float,range0,1,Inner stability Es
+ROW,subject,subject,scalar,eligibility_E,0.0,float,range0,1,Computed E = S*(1-R)*Es
+ROW,subject,subject,flag,microarousal_veto,false,bool,nonnull,True if recent micro-arousals detected
+SECTION,TIMING-POLICY
+ROW,policy,global,scalar,transfer_window_min_min,20.0,float,nonwaivable,Minimum minutes for transfer eligibility
+ROW,policy,global,scalar,transfer_window_max_min,40.0,float,nonwaivable,Maximum minutes for transfer eligibility
+ROW,policy,global,scalar,eligibility_E_min,0.50,float,range0,1,Minimum eligibility score
+ROW,policy,global,scalar,psychrisk_R_max,0.35,float,range0,1,Maximum allowed psychriskscore
+ROW,policy,global,enum,required_stages,N2,N3,string,N2,N3,Allowed sleep stages only
+ROW,policy,global,scalar,microarousal_lookback_min,3.0,float,nonwaivable,Lookback window for micro-arousal check
+ROW,policy,global,scalar,microarousal_threshold,2,int,0,Max micro-arousals allowed in lookback
+SECTION,RUNTIME-RULES
+ROW,rule,rule,expression,compute_eligibility,"eligibility_E = sleeptoken * (1.0 - psychriskscore) * enstasis_score",string,readonly,Deterministic E
+ROW,rule,rule,condition,time_window_ok,"minutes_since_lightsout >= transfer_window_min_min AND minutes_since_lightsout <= transfer_window_max_min",string,readonly,20-40 min window
+ROW,rule,rule,condition,stage_ok,"sleepstage IN required_stages",string,readonly,N2/N3 only
+ROW,rule,rule,condition,risk_ok,"psychriskscore <= psychrisk_R_max AND eligibility_E >= eligibility_E_min",string,readonly,Safe arousal envelope
+ROW,rule,rule,condition,no_microarousal,"NOT microarousal_veto",string,readonly,No recent sympathetic spikes
+ROW,rule,rule,condition,allow_transfer,"time_window_ok AND stage_ok AND risk_ok AND no_microarousal",string,readonly,All preconditions must hold
+ROW,rule,rule,action,on_transfer_allowed,"if allow_transfer then initiate_handshake(subjectid)",string,readonly,Safe transfer start
+ROW,rule,rule,action,on_transfer_deferred,"if NOT allow_transfer then log_event('transfer_deferred',subjectid) AND schedule_retry(300)",string,readonly,Backoff 5 min, no stimulus
+ROW,rule,rule,condition,block_early_stimulus,"if minutes_since_lightsout < transfer_window_min_min then mute_all_stimuli(subjectid)",string,readonly,No content before 20 min
+SECTION,NEURORIGHTS-GUARDS
+ROW,guard,policy,bool,mentalprivacy,true,bool,nonwaivable,Dream content never exported
+ROW,guard,policy,bool,cognitiveliberty,true,bool,nonwaivable,User may refuse transfer anytime
+ROW,guard,policy,bool,mentalintegrity,true,bool,nonwaivable,No forced arousal or fragmentation
+ROW,guard,policy,bool,nopunitivexr,true,bool,nonwaivable,Transfer timing never punitive
+ROW,guard,policy,bool,soulnonaddressable,true,bool,nonwaivable,Consciousness locus never scored/traded
+SECTION,LEDGER
+ROW,ledger,event,scalar,eventid,,string,primarykey,Transfer-timing event
+ROW,ledger,event,enum,eventtype,,string,transfer_allowed,transfer_deferred,microarousal_veto,stage_change,Type
+ROW,ledger,event,scalar,subjectid,,string,refsubject,Linked subject
+ROW,ledger,event,scalar,minutes_snapshot,,float,0,Minutes since lights-out at event
+ROW,ledger,event,scalar,eligibility_snapshot,,float,range0,1,E at event
+ROW,ledger,event,flag,neurorightsinvariantsheld,true,bool,nonwaivable,All guards satisfied
+FOOTER,END-OF-SHARD
